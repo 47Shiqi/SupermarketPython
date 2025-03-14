@@ -1,0 +1,214 @@
+import sys
+import os.path
+from os import path
+
+def main():
+    Login();
+    
+def Login():
+    global adminname,adminpw
+    adminname = "admin"
+    adminpw = "abc123"
+    global username,password
+    username = str(input("Enter the username: "));
+    password = str(input("Enter the password: "));
+    CheckName();
+
+def CheckName():
+    if(username == "" or password == ""):
+        print("Invalid input, please try again");
+        Login();
+    else:
+        CheckAdmin();
+        ChooseDepartment();
+
+def CheckAdmin():
+    global AdminOrUser
+    if(username == adminname and password == adminpw):
+        print("Welcome admin!")
+        AdminOrUser = "A";
+    else:
+        if(username == adminname):
+            print("Password is incorrect")
+            Login();
+        else:
+            print("Welcome " + username + "!");
+            AdminOrUser = "U";
+    
+def ChooseDepartment():
+    global whichdepartment,fileDir,AllDepartmentsFile,whichdepartment
+    fileDir = os.path.dirname(os.path.realpath("__file__"));
+    
+    AllDepartmentsFile = "alldepartments.txt";
+    CreateFile(AllDepartmentsFile);
+    
+    if(AdminOrUser == "A"):
+        Departments = ["1. Fruit","2. Poultry","3. Meat","4. Beverage","5. Frozen Foods","6. Dietary Food","7. Kosher","8. Halal"]
+        for i in range(len(Departments)):
+            print(Departments[i]);
+        whichdepartment = str(input("Type a number from 1 - 8 to choose a department and enter information for the department: "));
+        MatchDepartment();
+
+def CreateFile(thefilename):
+    fileexist = bool(path.exists(thefilename));
+    if(fileexist == False):
+        adminfile = open(thefilename,"x");
+        adminfile.close();
+    
+def MatchDepartment():
+    global whichfilename;
+    TorF = "true";
+    match(whichdepartment):
+        case "1":
+            #filepath = fileDir + "\Fruit.py";
+            whichfilename = "Fruit.txt";
+        case "2":
+            #filepath = fileDir + "\Poultry.py";
+            whichfilename = "Poultry.txt";
+        case "3":
+            #filepath = fileDir + "\Meat.py";
+            whichfilename = "Meat.txt";
+        case "4":
+            #filepath = fileDir + "\Beverage.py";
+            whichfilename = "Beverage.txt";
+        case "5":
+            #filepath = fileDir + "\Frozen Foods.py";
+            whichfilename = "Frozen Foods.txt";
+        case "6":
+            #filepath = fileDir + "\Dietary Food.py";
+            whichfilename = "Dietary Food.txt";
+        case "7":
+            #filepath = fileDir + "\Kosher.py";
+            whichfilename = "Kosher.txt";
+        case "8":
+            #filepath = fileDir + "\Halal.py";
+            whichfilename = "Halal.txt";
+        case default:
+            print("Invalid, please enter a number from 1 - 8.");
+            TorF = "false";
+            ChooseDepartment();
+    
+    if(TorF == "true"):
+        if(AdminOrUser == "A"):
+            AddInfo(AllDepartmentsFile,whichdepartment)
+            CheckFileExist();
+        else:
+            filenamepath = {
+                "__file__":filepath,
+                "__name__":"__main__",
+                };
+            with open(filepath,"rb")as file:
+                exec(compile(file.read(),filepath,"exec"),filenamepath);
+
+def AddInfo(filename,info):
+    adminfile = open(filename,"a");
+    adminfile.write(info + ",")
+    adminfile.close();
+        
+def CheckFileExist():
+    global pricefilename
+    CreateFile(whichfilename);
+    pricefilename = "Price "+ whichfilename;
+    CreateFile(pricefilename);
+
+    CollectInfo();
+    
+def CollectInfo():
+    global count
+    count = str(input("How many products would you like to add?"));
+    CheckNum(count);
+    if(ifcorrect != 0):
+        print("Invalid input, please try again");
+        CollectInfo();
+    else:
+        CollectProductInfo();
+
+def CheckNum(item):
+    global ifcorrect
+    ifcorrect = 0;
+    numberlist = list(item)
+    length = len(numberlist);
+    if(length == 0 or item == "0"):
+        ifcorrect = ifcorrect + 1;
+    else:
+        for i in range(length):
+            checkitem = ord(numberlist[i])
+            if(checkitem >= 48 and checkitem <= 57):
+                ifcorrect = ifcorrect + 0;
+            else:
+                ifcorrect = ifcorrect + 1;
+
+def CollectProductInfo():
+    for i in range (0,int(count)):
+        ProductName();
+        ProductPrice();
+    NextStep();
+
+def ProductName():
+    global Name;
+    Name = str(input("Enter the product name: "));
+    CheckProduct(Name);
+    if(truefalse == "false"):
+        print("Invalid input, please try again");
+        ProductName();
+    else:
+        AddInfo(whichfilename,Name);
+
+def CheckProduct(item):
+    global truefalse;
+    if(item == ""):
+        truefalse = "false";
+    else:
+        truefalse = "true";
+
+def ProductPrice():
+    global Price;
+    Price = str(input("Enter the product price: "));
+    CheckPrice(Price);
+    if(iscorrect != 0 or decimalnum > 1):
+        print("Invalid input, please try again");
+        ProductPrice();
+    else:
+        AddInfo(pricefilename,Price);
+
+def CheckPrice(item):
+    global iscorrect, decimalnum
+    iscorrect = 0;
+    decimalnum = 0;
+    numberlist = list(item)
+    length = len(numberlist);
+    if(length == 0 or item == "0"):
+        iscorrect = iscorrect + 1;
+    else:
+        for i in range(length):
+            checkitem = ord(numberlist[i])
+            if(checkitem >= 48 and checkitem <= 57):
+                iscorrect = iscorrect + 0;
+            else:
+                if(checkitem == 46):
+                    decimalnum = decimalnum + 1;
+                else:
+                    iscorrect = iscorrect + 1;
+
+def NextStep():
+    choice = str(input("Choose from:" + 
+                       "\n1. Choose another department" +
+                       "\n2. Log out" +
+                       "\n3. End the program"
+                       "\nenter a number from 1 - 3:"));
+
+    match(choice):
+        case "1":
+            ChooseDepartment();
+        case "2":
+            print("You successfully log out!");
+            Login();
+        case "3":
+            print("Thank you, goodbye!");
+            sys.exit();
+        case default:
+            print("Invalid, please enter a number from 1 - 3.");
+            NextStep();
+
+if __name__ == "__main__":
+    main();

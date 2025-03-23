@@ -1,0 +1,97 @@
+from flask import Flask,render_template,request
+
+app = Flask(__name__)
+
+count = 1
+schedule = []
+
+@app.route('/')
+def main():
+    global count
+    print("asking for period" + count)
+    return render_template('personinfo.html', count=count)
+    print("saving info..."
+    return GetInfo() #would this work
+
+@app.route('/info',methods=['POST'])
+def GetInfo():
+    global headings,data
+    headings = ("Period", "Course", "Teacher", "Room")
+    course = request.form.get("txtcoursename")
+    teacher = request.form.get("txtteacher")
+    room = request.form.get("txtroom")
+    free_period = request.form.get("freeperiod")# 1 = Yes, 2 = No
+    if (free_period==1):
+        course = "Lunch/Study Hall"
+    else:
+        if (free_period!=2):
+            print("Error")
+
+    match count:
+        case 1:
+            global course1, teacher1, room1
+            course1 = course
+            teacher1= teacher
+            room1 = room
+        case 2:
+            global course2, teacher2, room2
+            course2 = course
+            teacher2 = teacher
+            room2 = room
+        case 3:
+            global course3, teacher3, room3
+            course3 = course
+            teacher3 = teacher
+            room3 = room
+        case 4:
+            global course4, teacher4, room4
+            course4 = course
+            teacher4= teacher
+            room4 = room
+        case 5:
+            global course5, teacher5, room5
+            course5 = course
+            teacher5= teacher
+            room5 = room
+        case 6:
+            global course6, teacher6, room6
+            course6 = course
+            teacher6= teacher
+            room6 = room
+        case 7:
+            global course7, teacher7, room7
+            course7 = course
+            teacher7= teacher
+            room7 = room
+        case 8:
+            global course8, teacher8, room8
+            course8 = course
+            teacher8= teacher
+            room8 = room
+        case default:
+            print("PROGRAM ERROR: PLEASE RESTART")
+
+    count = int(count) + 1
+
+    if count < 9:
+        return render_template('personinfo.html', count)
+    
+    data = (
+        ("P1", course1, teacher1, room1),
+        ("P2", course2, teacher2, room2),
+        ("P3", course3, teacher3, room3),
+        ("P4", course4, teacher4, room4),
+        ("P5", course5, teacher5, room5),
+        ("P6", course6, teacher6, room6),
+        ("P7", course7, teacher7, room7),
+        ("P8", course8, teacher8, room8),
+        )
+    return DisplayInfo()
+        
+def DisplayInfo():
+    return render_template('formoutput.html',headings=headings, data=data)
+
+if __name__ == "__main__":
+    app.run()
+
+HTML AND CSS STAY THE SAME

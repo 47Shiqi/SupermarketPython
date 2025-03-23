@@ -3,12 +3,12 @@ from flask import Flask,render_template,request
 app = Flask(__name__)
 
 count = 1
-schedule = []
+data = []
 
 @app.route('/')
 def main():
     global count
-    print("asking for period" + count)
+    print("asking for period" + str(count))
     return render_template('personinfo.html', count=count)
     print("saving info...")
     return GetInfo() #would this work
@@ -27,9 +27,9 @@ def GetInfo():
     else:
         print("Error") #do error label with html later
         
-    schedule.append((count, course, teacher, room))
+    data.append((count, course, teacher, room))
     count += 1
-    print("next period : " + count)
+    print("next period : " + str(count))
     if count > 8:
             return DisplayInfo()
         
@@ -40,6 +40,7 @@ def DisplayInfo():
 
 if __name__ == "__main__":
     app.run()
+
 
 
 HTML PERSONINFO

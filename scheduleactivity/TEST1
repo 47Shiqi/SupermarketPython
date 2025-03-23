@@ -25,7 +25,8 @@ def GetInfo():
     if (free_period==1):
         course = "Lunch/Study Hall"
     else:
-        print("Error") #do error label with html later
+        if (free_period!=2):
+            print("Error") #do error label with html later
         
     data.append((count, course, teacher, room))
     count += 1

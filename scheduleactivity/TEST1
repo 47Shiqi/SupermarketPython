@@ -32,7 +32,7 @@ def GetInfo():
         
     schedule.append((count, course, teacher, room))
     count += 1
-    
+    print("next period : " + count)
     if count > 8:
             return DisplayInfo()
         

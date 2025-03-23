@@ -1,0 +1,113 @@
+from flask import Flask,render_template,request
+
+app = Flask(__name__)
+
+count = 1
+schedule = []
+
+@app.route('/')
+def main():
+    global count
+    print("asking for period" + count)
+    return render_template('personinfo.html', count=count)
+    print("saving info..."
+    return GetInfo() #would this work
+
+@app.route('/info',methods=['POST'])
+def GetInfo():
+    global headings,data
+    headings = ("Period", "Course", "Teacher", "Room")
+    course = request.form.get("txtcoursename")
+    teacher = request.form.get("txtteacher")
+    room = request.form.get("txtroom")
+    free_period = request.form.get("freeperiod")# 1 = Yes, 2 = No
+    
+    match (free_period)
+        case 1:
+            course = "Lunch/Study Hall"
+        case 2:
+            break
+        case default:
+            print("Error") #do error label with html later
+        
+    schedule.append((count, course, teacher, room))
+    count += 1
+    
+    if count > 8:
+            return DisplayInfo()
+        
+    return render_template('personinfo.html', count=count)
+
+def DisplayInfo():
+    return render_template('formoutput.html',headings=headings, data=data)
+
+if __name__ == "__main__":
+    app.run()
+
+
+HTML PERSONINFO
+<html>
+	<head>
+		<title>Schedule</title>
+	</head>
+	<body>
+		<h1>Input the following information</h1>
+		<form action="/info" method="POST">
+			<label>Course name:</label>
+			<input type="text" name="txtcoursename">
+
+			<label>Teacher:</label>
+			<input type="text" name="txtteacher">
+
+			<label>Room Number:</label>
+			<input type="text" name="txtroom">
+
+			<label>Is this a free period (Lunch, Study Hall, etc.)? Type 1 for Yes, 2 for No:</label>
+			<input type="text" name="freeperiod">
+
+			<!-- Hidden input to keep track of count -->
+			<input type="hidden" name="count" value="{{ count }}">
+
+			<!--add checks by adding an error label-->
+			<button type="submit">Next</button>
+	</body>
+</html>
+
+HTML FORMOUTPUT
+<html>
+	<head>
+		<title>Schedule Output</title>
+		<link rel="stylesheet" href="/static/custtable.css">
+	</head>
+	<body>
+		<form method="POST">
+			<table id="tbinfo">
+				<tr>
+					{% for header in headings %}
+					<th> {{header}}</th>
+					{% endfor %}
+				</tr>
+				{% for row in data %}
+				<tr>
+					{% for cell in row %}
+					<td> {{cell}} </td>
+					{% endfor %}
+				</tr>
+				{% endfor %}
+			</table>
+		</form>				
+	</body>
+</html>
+
+CSS
+table,th,td
+{
+	border: 1px solid black;
+	border-collapse:collapse;
+}
+
+label
+{
+	display:inline-block;
+	width: 50px;
+}

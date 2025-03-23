@@ -10,7 +10,7 @@ def main():
     global count
     print("asking for period" + count)
     return render_template('personinfo.html', count=count)
-    print("saving info..."
+    print("saving info...")
     return GetInfo() #would this work
 
 @app.route('/info',methods=['POST'])
@@ -22,13 +22,10 @@ def GetInfo():
     room = request.form.get("txtroom")
     free_period = request.form.get("freeperiod")# 1 = Yes, 2 = No
     
-    match (free_period)
-        case 1:
-            course = "Lunch/Study Hall"
-        case 2:
-            break
-        case default:
-            print("Error") #do error label with html later
+    if (free_period==1):
+        course = "Lunch/Study Hall"
+    else:
+        print("Error") #do error label with html later
         
     schedule.append((count, course, teacher, room))
     count += 1

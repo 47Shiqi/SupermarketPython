@@ -1,0 +1,70 @@
+
+from flask import Flask,render_template,request
+
+app = Flask(__name__)
+
+@app.route('/')
+def main():
+    global count
+    count = "";
+    return render_template('personinfo.html', count=count)
+    
+@app.route('/info',methods=['POST'])
+def GetInfo():
+    global headings,data
+    headings = ("Course","Teacher")
+
+    match (count)
+        case 1:
+            course1 = request.form.get('txtcoursename')
+            teacher1 = request.form.get('txtteacher1')
+            count = count+1
+        case 2:
+            course2 = request.form.get('txtcoursename2')
+            teacher2 = request.form.get('txtteacher2')
+            count = count+1
+                    
+    data = (
+        (course1,teacher1),
+        (course2, teacher2)
+        )
+    count += 1
+    return count
+    
+
+        print(count)
+        count = count + 1
+        return render_template('personinfo.html', count=count)
+    else:
+        return GetInfo()
+        print(count);
+        if (count >8):
+            return render_template('formoutput.html',headings = headings, data=data)
+
+
+
+if __name__ == "__main__":
+    app.run()
+
+
+
+
+<html>
+	<head>
+		<title>Schedule</title>
+	</head>
+	<body>
+		<h1>Input the following information</h1>
+		<form action="/info" method="POST">
+			<label id="lblcoursename">Course name: </label>
+			<input type="text" name="txtcoursename">
+			<label id="lblteacher1">Teacher: </label>
+			<input type="text" name="txtteacher"></input>
+			
+			<label id="lblcoursename2">Course name: </label>
+			<input type="text" name="txtcoursename">
+			<label id="lblteacher2">Teacher: </label>
+			<input type="text" name="txtteacher"></input>
+			<button type="Submit">Next</button>
+	</body>
+</html>

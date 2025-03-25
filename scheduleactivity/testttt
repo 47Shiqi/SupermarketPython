@@ -1,0 +1,60 @@
+import os.path
+from os import path
+from flask import Flask,render_template,request
+
+app = Flask(__name__)
+
+count = 1
+data = []
+
+@app.route('/')
+def main():
+    global fileexist;
+    fileexist = bool(path.exists("scheduledata.txt"));
+    if(fileexist == False):
+        adminfile = open("scheduledata.txt","x");
+        adminfile.close();
+    else:
+        adminfile = open("scheduledata.txt","w");
+        adminfile.close();
+    return render_template('personinfo.html', count=count)
+    
+@app.route('/info',methods=['POST'])
+def GetInfo():
+    global headings,data,error,count,days
+    error = ""
+    headings = ("Course","Teacher","Room")
+    days = ("Monday","Tuesday","Wednesday","Thursday","Friday")
+    
+    course = request.form.get("txtcoursename")
+    teacher = request.form.get("txtteacher")
+    room = request.form.get("txtroom")
+    period_type = request.form.get("period_type")
+    substitute = request.form.get("substitute")
+    
+    if (period_type != "Normal"):
+        course = period_type
+        
+    if (substitute == "Yes"):
+        teacher = "Substitute"
+
+    if (period_type == "Lunch"):
+        teacher = "Bon Appetit"
+        
+    if ((course== "" and period_type =="Normal") or (teacher=="" and period_type!="Lunch") or room==""):
+        error = "Missing information. Please fill in all information accordingly."
+        return render_template('personinfo.html', count=count, error=error)
+    else:
+        data.append((course, teacher, room))
+        count += 1
+    if count > 8:
+        return DisplayInfo()
+    
+    period = "Information for PERIOD " + str(count-1) + " successfully entered."
+    return render_template('personinfo.html', count=count,period=period)
+
+def DisplayInfo():
+    return render_template('formoutput.html',headings=headings, data=data, days=days)
+
+if __name__ == "__main__":
+    app.run()

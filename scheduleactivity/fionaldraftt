@@ -1,0 +1,191 @@
+<html>
+	<head>
+		<title>Schedule Output</title>
+		<link rel="stylesheet" href="/static/custtable.css">
+	</head>
+	<body>
+		<form method="POST">
+			<table id="tbinfo">
+				<tr>
+					<th>Period</th>
+					<th colspan="3">1</th>
+					<th colspan="3">2</th>
+					<th colspan="3">3</th>
+					<th colspan="3">4</th>
+					<th colspan="3">5</th>
+					<th colspan="3">6</th>
+					<th colspan="3">7</th>
+					<th colspan="3">8</th>
+				</tr>
+				<tr>
+					<th>Day</th>
+					{% for header in headings %}
+					<th> {{header}}</th>
+					{% endfor %}
+					
+					{% for header in headings %}
+					<th> {{header}}</th>
+					{% endfor %}
+					
+					{% for header in headings %}
+					<th> {{header}}</th>
+					{% endfor %}
+					
+					{% for header in headings %}
+					<th> {{header}}</th>
+					{% endfor %}
+					
+					{% for header in headings %}
+					<th> {{header}}</th>
+					{% endfor %}
+					
+					{% for header in headings %}
+					<th> {{header}}</th>
+					{% endfor %}
+					
+					{% for header in headings %}
+					<th> {{header}}</th>
+					{% endfor %}
+					
+					{% for header in headings %}
+					<th> {{header}}</th>
+					{% endfor %}
+				</tr>
+				
+				{% for day in days %}
+                    <tr>
+					<td>{{day}}</td>
+                        {% for row in data %}
+								
+                                {% for cell in row %}
+                                    <td>{{cell}}</td>
+                                {% endfor %}
+                        
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+			</table>
+		</form>				
+	</body>
+</html>
+
+
+<html>
+    <head>
+        <title>Schedule</title>
+    </head>
+    <body>
+        <h1>Input the following information for Period {{count}}!</h1>
+        <form action="/info" method="POST">	
+			<table>
+				<tr>
+					<td><label>Course name:</label></td>
+					<td><input type="text" name="txtcoursename" autofocus></td>
+				</tr>
+				<tr>
+					<td><label>Do you have a substitute for this class? If yes, leave the next box for "Teacher:" empty.</label></td>
+					<td><select name="substitute">
+							<option value="No">No</option>
+							<option value="Yes">Yes</option>
+						</select>
+					</td>
+				</tr>
+				<tr>	
+					<td><label>Teacher:</label></td>
+					<td><input type="text" name="txtteacher"></td>
+				</tr>
+				<tr>	
+					<td><label>Room Number:</label></td>
+					<td><input type="text" name="txtroom"></td>
+				</tr>
+				<tr>
+					<td><label>What type of period is this?</label></td>
+					<td><select name="period_type">
+						<option value="Normal">Normal Course</option>
+						<option value="Lunch">Lunch</option>
+						<option value="Study Hall">Study Hall</option>
+						<option value="Volunteering">Volunteering</option>
+						<option value="Working">Working</option>
+					</select>
+					</td>
+				</tr>
+				<tr>
+					<label id="errormsg"><strong>{{error}}</strong></label>
+					<label id="progressmsg"><strong>{{period}}</strong></label><br>
+				</tr>
+				<tr>
+					<td><button type="submit">Next</button></td>
+				</tr>
+  
+        </form>
+    </body>
+</html>
+
+table,th,td
+{
+	border: 1px solid black;
+	border-collapse:collapse;
+}
+
+label
+{
+	display:inline-block;
+	width: 50px;
+}
+td
+{
+	text-align:center;
+}
+
+
+
+
+
+from flask import Flask,render_template,request
+
+app = Flask(__name__) #explicitly set template only for my computer
+
+count = 1
+data = []
+
+@app.route('/')
+def main():
+    return render_template('personinfo.html', count=count)
+    
+@app.route('/info',methods=['POST'])
+def GetInfo():
+    global headings,data,error,count,days
+    error = ""
+    headings = ("Course","Teacher","Room")
+    days = ("Monday","Tuesday","Wednesday","Thursday","Friday")
+    course = request.form.get("txtcoursename")
+    teacher = request.form.get("txtteacher")
+    room = request.form.get("txtroom")
+    period_type = request.form.get("period_type")
+    substitute = request.form.get("substitute")
+    
+    if (period_type != "Normal"):
+        course = period_type
+        
+    if (substitute == "Yes"):
+        teacher = "Substitute"
+    print(period_type)
+        
+    if ((course== "" and period_type =="Normal") or teacher=="" or room==""):
+        error = "Missing information. Please fill in all information accordingly."
+        return render_template('personinfo.html', count=count, error=error)
+    else:
+        data.append((course, teacher, room))
+        count += 1
+    if count > 8:
+        return DisplayInfo()
+    print(data)
+    period = "Information for PERIOD " + str(count-1) + " successfully entered."
+    return render_template('personinfo.html', count=count,period=period)
+
+def DisplayInfo():
+    return render_template('formoutput.html',headings=headings, data=data, days=days)
+
+if __name__ == "__main__":
+    app.run()
+

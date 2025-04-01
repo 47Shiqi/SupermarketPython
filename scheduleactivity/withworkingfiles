@@ -14,6 +14,11 @@ table,th,td
 	background-color:#D3D3D3;
 }
 
+td[id="innerdata"]
+{
+	background-color:#FFFFFF;
+}
+
 label
 {
 	display:inline-block;
@@ -83,7 +88,7 @@ HTML OUTPUT
                         {% for row in data %}
 								
                                 {% for cell in row %}
-                                    <td>{{cell}}</td>
+                                    <td  id="innerdata">{{cell}}</td>
                                 {% endfor %}
                         
                         {% endfor %}
@@ -93,6 +98,7 @@ HTML OUTPUT
 		</form>				
 	</body>
 </html>
+
 
 HTML PERSONINFO
 <html>

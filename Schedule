@@ -1,0 +1,366 @@
+python-
+
+from flask import Flask, render_template, request
+import os.path
+from os import path
+
+app = Flask(__name__)
+
+count = 1;
+
+@app.route("/")
+def main():
+    return render_template("Scheduleinput.html", count = count)
+
+@app.route("/info", methods = ['POST'])  
+def GetInfo():
+    global count
+    global headings
+    global courseinfo,teacherinfo,roominfo
+    headings = ("Course","Teacher","Room")
+    
+    courseinfo1 = request.form.get('txtentercourse')
+    courseinfo2 = request.form.get('selectcourse')
+    teacherinfo = request.form.get('txtteacher')
+    roominfo = request.form.get('txtroom')
+    Check(courseinfo1,courseinfo2,teacherinfo,roominfo)
+    if(TorF=="false1"):
+        msg = "Invalid, if you choose to select, please leave 'Enter Course' blank, and vice versa"
+        return render_template("Scheduleinput.html", count = count, msg = msg)
+    else:
+        if(TorF=="false2"):
+            msg = "Invalid, please enter all information"
+            return render_template("Scheduleinput.html", count = count, msg = msg)
+        else:
+            if(courseinfo1 == ""):
+                courseinfo = courseinfo2
+            else:
+                courseinfo = courseinfo1
+            CheckFile();
+            if(count < 8):
+                msg = "Information for period " + str(count) + " is stored";
+                count = count + 1
+                return render_template("Scheduleinput.html", count = count, msg = msg)
+            else:
+                return render_template("Scheduleinput2.html")
+                #return Retrieve();
+
+def CheckFile():
+    global whichfilename
+    whichfilename = "Schedule.txt";
+    fileDir = os.path.dirname(os.path.realpath("__file__"));
+    fileexist = bool(path.exists(whichfilename));
+    if(fileexist == False):
+        Create();
+    Write();
+
+def Create():
+    adminfile = open(whichfilename,"x")
+    adminfile.close();
+    
+def Write():
+    #print(count)
+    if(count == 1):
+        adminfile = open(whichfilename,"w")
+        adminfile.write(str(courseinfo) + "," + str(teacherinfo) + "," + str(roominfo));
+    else:
+        adminfile = open(whichfilename,"a")
+        adminfile.write("," + str(courseinfo) + "," + str(teacherinfo) + "," + str(roominfo));
+    adminfile.close()
+
+def Check(thecourse1,thecourse2,theteacher,theroom):
+    global TorF
+    if(thecourse1 != "" and thecourse2 != None):
+        TorF="false1"
+    else:
+        if((thecourse1 != "" and thecourse2 == None)or(thecourse1 == "" and thecourse2 != None)):
+            TorF="ContinueCheck"
+            if(theteacher=="" or theroom==""):
+                TorF="false2"
+            else:
+                TorF="true"
+        else:
+            TorF="false2"
+
+@app.route("/info2", methods = ['POST'])
+def GetInfo2():
+    global YorN,day,pd,teachername,roomnum
+    YorN = request.form.get('selectYorN')
+    day = request.form.get('selectday')
+    pd = request.form.get('selectpd')
+    teachername = request.form.get('txtteachername')
+    roomnum = request.form.get('txtroomnum')
+    Check2();
+    if(case == "false"):
+        msg = "Invalid, please enter all information"
+        return render_template("Scheduleinput2.html", msg = msg)
+    else:
+        return Retrieve();
+        
+
+def Check2():
+    global case
+    if(YorN == "N"):
+        case = "true_no"
+    else:
+        if(YorN == "Y"):
+            if(day != None and pd != None and teachername != "" and roomnum != ""):
+                case = "true_yes"
+            else:
+                case = "false"
+        else:
+            case = "false"
+
+def Retrieve():
+    global data
+    data = [];
+    adminfile = open(whichfilename,"r+")
+    allInfo = adminfile.read().split(",");
+    length = len(allInfo) / 3;
+    num = 0
+    periodposition = (int(pd)-1)*3
+    dayposition = int(day) - 1
+    
+    for i in range(int(length)):
+        course = allInfo[num]
+        teacher = allInfo[num+1]
+        room = allInfo[num+2]
+        subdata = [];
+        for i in range(5):
+            if(case == "true_no"):
+                subdata.append(course)
+                subdata.append(teacher)
+                subdata.append(room)
+            else:
+                if(num == periodposition):
+                    if(i == dayposition):
+                        subdata.append("Advisory")
+                        subdata.append(teachername)
+                        subdata.append(roomnum)
+                    else:
+                        subdata.append(course)
+                        subdata.append(teacher)
+                        subdata.append(room)
+                else:
+                    subdata.append(course)
+                    subdata.append(teacher)
+                    subdata.append(room)
+                        
+        num = num+3
+        data.append(subdata)
+            
+    return DisplayInfo();
+    
+def DisplayInfo():
+    numbers = (1,2,3,4,5)
+    return render_template('Scheduleoutput.html',headings = headings, data = data, numbers = numbers)
+
+if __name__  == '__main__':
+    app.run();
+
+
+
+
+
+html #1 -
+
+<html>
+	<head>
+		<title>Schedule</title>
+		<link rel="stylesheet" href="/static/scheduleinput.css">
+	</head>
+
+	<body>
+		<h1>Making a Schedule</h1>
+		<form action="/info" method="post">
+            <h3><label name="msg">Enter the course information for all 8 periods</label></h3>
+            <h3><label name="msg2">Enter "N/A" for any unavailable information</label></h3>
+            <h3><label name="msg3">You can either select a course or enter a course yourself<br>
+            If you choose to select, please leave "Enter Course" blank, and vice versa</label></h3>
+			<h2><label name="lblPDinfo">Period {{count}}:</label></h2>
+			<table id="tblinfo">	
+                <tr>
+					<td><label name="lblentercourse">Enter Course:</label></td>
+					<td><input type="text" name="txtentercourse" size="12" autofocus></td>
+				</tr>
+				<tr>
+					<td><label name="lblselectcourse">Select Course:</label></td>
+                    <td><select name="selectcourse">
+    						<option value=None disabled selected>Select a Course</option>
+    						<option value="Lunch">Lunch</option>
+    						<option value="Study Hall">Study Hall</option>
+                            <option value="Work">Work</option>
+                            <option value="Volunteering">Volunteering</option>
+                            <option value="Long-term Substitute">Long-term Substitute</option>
+					    </select></td>
+				</tr>
+				<tr>	
+					<td><label name="lblteacher">Teacher:</label></td>
+					<td><input type="text" name="txtteacher" size="12"></td>
+				</tr>
+				<tr>
+            		<td><label name="lblroom">Room:</label></td>
+					<td><input type="text" name="txtroom" size="12"></td>
+				</tr>
+				<tr>
+					<td id="btnsubmit" colspan="2"><button type="submit">Submit</button></td>
+				</tr>
+			</table>
+            <label name="displaymsg">{{msg}}</label>
+		</form>
+	</body>
+</html>
+
+
+
+
+html #2
+
+<html>
+	<head>
+		<title>Schedule_Advisory</title>
+		<link rel="stylesheet" href="/static/scheduleinput.css">
+	</head>
+
+	<body>
+		<h1>Making a Schedule</h1>
+		<form action="/info2" method="post">
+            <h3><label name="msg">Enter the course information for advisory period</label></h3>
+            <h3><label name="msg2">Enter "N/A" for any unavailable information</label></h3>
+            <h3><label name="msg3">Please note that if you select "No" for the first question,<br>
+                even if you enter other information for advisory, it will not be stored</label></h3>
+			<table id="tblinfo">	
+                <tr>
+					<td><label name="lblDay">Do you have an advisory period:</label></td>
+                    <td><select name="selectYorN">
+    						<option value=None disabled selected>Select Yes or No</option>
+    						<option value="Y">Yes</option>
+    						<option value="N">No</option>
+					    </select>
+                    </td>
+				</tr>
+                <tr>
+					<td><label name="lblcourse">Course:</label></td>
+                    <td><label name="lblcourse">Advisory</label></td>
+				</tr>
+				<tr>
+					<td><label name="lblDay">Select a Day:</label></td>
+                    <td><select name="selectday">
+    						<option value=None disabled selected>Select a Day</option>
+    						<option value="1">Monday</option>
+    						<option value="2">Tuesday</option>
+                            <option value="3">Wednesday</option>
+                            <option value="4">Thursday</option>
+                            <option value="5">Friday</option>
+					    </select>
+                    </td>
+				</tr>
+                <tr>
+					<td><label name="lblPD">Select a Period:</label></td>
+                    <td><select name="selectpd">
+    						<option value=None disabled selected>Select a Period</option>
+    						<option value="1">1</option>
+    						<option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                            <option value="6">6</option>
+                            <option value="7">7</option>
+                            <option value="8">8</option>
+					    </select>
+                    </td>
+				</tr>
+                <tr>	
+					<td><label name="lblteacher">Teacher:</label></td>
+					<td><input type="text" name="txtteachername" size="12"></td>
+				</tr>
+				<tr>
+            		<td><label name="lblroom">Room:</label></td>
+					<td><input type="text" name="txtroomnum" size="12"></td>
+				</tr>
+				<tr>
+					<td id="btnsubmit" colspan="2"><button type="submit">Submit</button></td>
+				</tr>
+			</table>
+            <label name="displaymsg">{{msg}}</label>
+		</form>
+	</body>
+</html>
+
+
+
+
+
+html #3 -
+
+<html>
+	<head>
+		<title>Schedule Output</title>
+		<link rel="stylesheet" href="/static/custtable.css">
+	</head>
+
+	<body>
+		<form method="post">
+			<table id="tbinfo">
+				<tr>
+                    <th rowspan = "2">Period</th>
+                    <th colspan = "3">Monday</th>
+                    <th colspan = "3">Tuesday</th>
+                    <th colspan = "3">Wednesday</th>
+                    <th colspan = "3">Thursday</th>
+                    <th colspan = "3">Friday</th>
+               	</tr>
+                <tr>
+					{% for num in numbers %}
+						{% for header in headings %}
+						<th>{{header}}</th>
+						{% endfor %}
+					{% endfor %}
+				</tr>
+                
+				{% for row in data %}
+				<tr>
+                   	<td>{{loop.index}}</td>
+                    	{% for cell in row %}
+                    		<td>{{cell}}</td>
+						{% endfor %}
+
+				</tr>
+				{% endfor %}
+			</table>
+		</form>
+	</body>
+</html>
+
+
+
+
+css #1 - 
+
+
+table, th, td
+{
+	border: 1px solid black;
+	border-collapse: collapse;
+}
+
+label
+{
+	display:inline-block;
+	width:50px;
+}
+
+td
+{
+    text-align:center;
+}
+
+
+
+
+css #2 -
+
+td[id="btnsubmit"]
+{
+	text-align:right;
+}

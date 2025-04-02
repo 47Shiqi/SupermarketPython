@@ -1,0 +1,418 @@
+flask
+import os.path
+from os import path
+from flask import Flask,render_template,request
+
+app = Flask(__name__, template_folder="template") #explicitly set template only for my computer
+
+count = 1
+data = []
+
+@app.route('/')
+def main():
+    global fileexist;
+    fileexist = bool(path.exists("scheduledata.txt"));
+    if(fileexist == False):
+        adminfile = open("scheduledata.txt","x");
+        adminfile.close();
+    else:
+        adminfile = open("scheduledata.txt","w");
+        adminfile.close();
+    return render_template('personinfo.html', count=count)
+    
+@app.route('/info',methods=['POST'])
+def GetInfo(): 
+    global headings,error,count,days 
+    error = ""
+    headings = ("Course","Teacher","Room")
+    days = ("Monday","Tuesday","Wednesday","Thursday","Friday")
+    
+    course = request.form.get("txtcoursename")
+    teacher = request.form.get("txtteacher")
+    room = request.form.get("txtroom")
+    period_type = request.form.get("period_type")
+    substitute = request.form.get("substitute")
+   
+    if (period_type != "Normal"):
+        course = period_type
+        
+    if (substitute == "Yes"):
+        teacher = "Substitute"
+
+    if (period_type == "Lunch"):
+        teacher = "Bon Appetit"
+        
+    if ((course== "" and period_type =="Normal") or (teacher=="" and period_type!="Lunch") or room==""):
+        error = "Missing information. Please fill in all information accordingly."
+        return render_template('personinfo.html', count=count, error=error)
+    else:
+        adminfile = open("scheduledata.txt","a");
+        if (count == 8):
+            adminfile.write(course + "," + teacher + "," + room);
+        else:
+            adminfile.write(course + "," + teacher + "," + room + ",");
+        adminfile.close();
+        count += 1
+    if (count > 8):
+        return render_template('scheddata.html')
+    
+    period = "Information for PERIOD " + str(count-1) + " successfully entered."
+    return render_template('personinfo.html', count=count,period=period)
+
+def DisplayInfo():
+    global allinfo, data
+    allinfo = []
+    data = []
+    adminfile = open("scheduledata.txt","r");
+    allinfo = adminfile.read().split(",");
+    for i in range(0,len(allinfo),3):
+        data.append((allinfo[i], allinfo[i+1], allinfo[i+2]))
+        i += 3
+    
+    adminfile.close();
+    return render_template('formoutput.html',headings=headings, data=data, days=days)
+
+@app.route("/furtherinfo", methods = ['POST'])
+def GetInfo2():
+    global YorN,day,pd,teachername,roomnum
+    YorN = request.form.get('selectYesorNo')
+    day = request.form.get('selectday')
+    pd = request.form.get('selectpd')
+    teachername = request.form.get('txtteachername')
+    roomnum = request.form.get('txtroomnum')
+    Checking();
+    if(case == "false"):
+        msg = "Missing or invalid information, please input all information accurately."
+        return render_template('scheddata.html', msg = msg)
+    else:
+        return Retrieve();
+        
+
+def Checking():
+    global case
+    if(YorN == "N"):
+        case = "true_no"
+    else:
+        if(YorN == "Y"):
+            if(day != None and pd != None and teachername != "" and roomnum != ""):
+                case = "true_yes"
+            else:
+                case = "false"
+
+def Retrieve():
+    global data
+    data = [];
+    adminfile = open("scheduledata.txt","r")
+    allInfo = adminfile.read().split(",");
+    adminfile.close()
+    length = len(allInfo) / 3;
+    num = 0
+    periodposition = (int(pd)-1)*3
+    dayposition = int(day) - 1
+    
+    for i in range(int(length)):
+        course = allInfo[num]
+        teacher = allInfo[num+1]
+        room = allInfo[num+2]
+        subdata = [];
+        for i in range(5):
+            if(case == "true_no"):
+                return DisplayInfo();
+            else:
+                if(num == periodposition):
+                    if(i == dayposition):
+                        subdata.append("Advisory")
+                        subdata.append(teachername)
+                        subdata.append(roomnum)
+                    else:
+                        subdata.append(course)
+                        subdata.append(teacher)
+                        subdata.append(room)
+                else:
+                    subdata.append(course)
+                    subdata.append(teacher)
+                    subdata.append(room)
+        print(subdata)
+        num = num+3
+        data.append(subdata)
+            
+    return DisplayInfo2();
+
+def DisplayInfo2():
+    numbers = (1,2,3,4,5)
+    return render_template('withadvisoryoutput.html', days=days, headings = headings, data = data, numbers = numbers)
+
+if __name__ == "__main__":
+    app.run()
+
+
+html personinfo
+<html>
+    <head>
+        <title>Schedule</title>
+    </head>
+    <body>
+		<h1>Input the following information for Period {{count}}!</h1>
+		<h3>If you have anything other than a Normal Course for Period Type, please leave Course Name blank.<h3>
+        
+        <form action="/info" method="POST">    
+            <table>
+                <tr>
+                    <td><label>Course name:</label></td>
+                    <td><input type="text" name="txtcoursename" autofocus></td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <label>Do you have a substitute for this class? If yes, leave the next box for "Teacher:" empty.</label>
+                    </td>
+                </tr>
+                <tr>
+                    <td><label>Substitute:</label></td>
+                    <td>
+                        <select name="substitute">
+                            <option value="No">No</option>
+                            <option value="Yes">Yes</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>    
+                    <td><label>Teacher:</label></td>
+                    <td><input type="text" name="txtteacher"></td>
+                </tr>
+                <tr>    
+                    <td><label>Room Number:</label></td>
+                    <td><input type="text" name="txtroom"></td>
+                </tr>
+                <tr>
+                    <td><label>Period Type:</label></td>
+                    <td>
+                        <select name="period_type">
+                            <option value="Normal">Normal Course</option>
+                            <option value="Lunch">Lunch</option>
+                            <option value="Study Hall">Study Hall</option>
+                            <option value="Volunteering">Volunteering</option>
+                            <option value="Working">Working</option>
+							<option value="Gym">Gym</option>
+                        </select>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td colspan="2">
+                        <label id="errormsg"><strong>{{error}}</strong></label>
+                        <label id="progressmsg"><strong>{{period}}</strong></label>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2"><button type="submit">Next</button></td>
+                </tr>
+            </table>
+        </form>
+    </body>
+</html>
+
+html withadviroyr
+<html>
+	<head>
+		<title>Schedule Output with Advisory</title>
+		<link rel="stylesheet" href="/static/custtable.css">
+	</head>
+	<body>
+		<form method="POST">
+			<h1 id="title">Schedule</h1>
+			<table id="tbinfo">
+				<tr>
+					<th>Period</th>
+					{% for i in range(1, 9) %}
+						<th colspan="3">{{ i }}</th>
+					{% endfor %}
+				</tr>
+				<tr>
+					<th>Day</th>
+					{% for _ in range(8) %}
+						{% for header in headings %}
+							<th>{{ header }}</th>
+						{% endfor %}
+					{% endfor %}
+				</tr>
+				{% for day_idx in range(5) %}
+				<tr>
+					<td>{{ days[day_idx] }}</td>
+					{% for period in data %}
+						{% set base_idx = day_idx * 3 %}
+						<td>{{ period[base_idx] }}</td>
+						<td>{{ period[base_idx + 1] }}</td>
+						<td>{{ period[base_idx + 2] }}</td>
+					{% endfor %}
+				</tr>
+				{% endfor %}
+			</table>
+		</form>
+	</body>
+</html>
+
+html scheddata
+<html>
+	<head>
+		<title>ScheduleAdvisory</title>
+		<!--<link rel="stylesheet" href="/static/scheduleinput.css">-->
+	</head>
+
+	<body>
+		<h1>Making a Schedule</h1>
+		<form action="/furtherinfo" method="POST">
+            <h3><label name="msg">Enter the course information for your advisory period that occurs once a week 
+				(if you have one).</label></h3>
+            <h3><label name="warning">Please note that if you select "No" for the first question,<br>
+                no entered information will be stored. Please click submit.</label></h3>
+			<table id="tblinfo">	
+                <tr>
+					<td><label name="lblYN">Do you have an advisory period:</label></td>
+                    <td><select name="selectYesorNo">
+    						<option value="Y">Yes</option>
+    						<option value="N">No</option>
+					    </select>
+                    </td>
+				</tr>
+                <tr>
+					<td><label name="lblcourse">Course:</label></td>
+                    <td><label name="lblcourse">Advisory</label></td>
+				</tr>
+				<tr>
+					<td><label name="lblDay">Select a Day:</label></td>
+                    <td><select name="selectday">
+    						<option value="1">Monday</option>
+    						<option value="2">Tuesday</option>
+                            <option value="3">Wednesday</option>
+                            <option value="4">Thursday</option>
+                            <option value="5">Friday</option>
+					    </select>
+                    </td>
+				</tr>
+                <tr>
+					<td><label name="lblPD">Select a Period:</label></td>
+                    <td><select name="selectpd">
+    						<option value="1">1</option>
+    						<option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                            <option value="6">6</option>
+                            <option value="7">7</option>
+                            <option value="8">8</option>
+					    </select>
+                    </td>
+				</tr>
+                <tr>	
+					<td><label name="lblteacher">Teacher:</label></td>
+					<td><input type="text" name="txtteachername"></td>
+				</tr>
+				<tr>
+            		<td><label name="lblroom">Room:</label></td>
+					<td><input type="text" name="txtroomnum"></td>
+				</tr>
+				<tr>
+					<td id="btnsubmit" colspan="2"><button type="submit">Submit</button></td>
+				</tr>
+			</table>
+            <label name="displayerror">{{msg}}</label>
+		</form>
+	</body>
+</html>
+
+html formoutu
+<html>
+	<head>
+		<title>Schedule Output</title>
+		<link rel="stylesheet" href="/static/custtable.css">
+	</head>
+	<body>
+		<form method="POST">
+			<h1 id="title">Schedule</h1>
+		
+			<table id="tbinfo">
+				<tr>
+					<th>Period</th>
+					<th colspan="3">1</th>
+					<th colspan="3">2</th>
+					<th colspan="3">3</th>
+					<th colspan="3">4</th>
+					<th colspan="3">5</th>
+					<th colspan="3">6</th>
+					<th colspan="3">7</th>
+					<th colspan="3">8</th>
+				</tr>
+				<tr>
+					<th>Day</th>
+					{% for header in headings %}
+					<th> {{header}}</th>
+					{% endfor %}
+					
+					{% for header in headings %}
+					<th> {{header}}</th>
+					{% endfor %}
+					
+					{% for header in headings %}
+					<th> {{header}}</th>
+					{% endfor %}
+					
+					{% for header in headings %}
+					<th> {{header}}</th>
+					{% endfor %}
+					
+					{% for header in headings %}
+					<th> {{header}}</th>
+					{% endfor %}
+					
+					{% for header in headings %}
+					<th> {{header}}</th>
+					{% endfor %}
+					
+					{% for header in headings %}
+					<th> {{header}}</th>
+					{% endfor %}
+					
+					{% for header in headings %}
+					<th> {{header}}</th>
+					{% endfor %}
+				</tr>
+				
+				{% for day in days %}
+                    <tr>
+					<td>{{day}}</td>
+                        {% for row in data %}
+								
+                                {% for cell in row %}
+                                    <td>{{cell}}</td>
+                                {% endfor %}
+                        
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+			</table>
+		</form>				
+	</body>
+</html>
+
+CSSS
+h1[id="title"]
+{
+	text-align: center;
+    margin-bottom: 20px;
+	background-color:#D3D3D3;
+}
+
+table,th,td
+{
+	border: 1px solid black;
+	border-collapse:collapse;
+	text-align:center;
+	background-color:#D3D3D3;
+}
+
+label
+{
+	display:inline-block;
+	width: 50px;
+}
+

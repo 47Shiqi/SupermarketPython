@@ -394,7 +394,9 @@ html formoutu
 	</body>
 </html>
 
-CSSS
+
+
+css
 h1[id="title"]
 {
 	text-align: center;
@@ -410,9 +412,25 @@ table,th,td
 	background-color:#D3D3D3;
 }
 
+td[id="innerdata"]
+{
+	background-color:#FFFFFF;
+}
+
+
+th[id="periods"]
+{
+	background-color:#00008B;
+	color:#FFFFFF
+}
+th[id="day"], td[id="day"]
+{
+	background-color:#a1aded;
+	
+}
+
 label
 {
 	display:inline-block;
 	width: 50px;
 }
-
